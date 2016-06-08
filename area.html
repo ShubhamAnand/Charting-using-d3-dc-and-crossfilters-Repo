@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+div.tooltip {   
+  position: absolute;           
+  text-align: center;           
+  width: 180px;                  
+  height: 28px;                 
+  padding: 2px;             
+  font: 12px sans-serif;        
+  background: lightsteelblue;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+} 
+
+body { font: 12px Arial;}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    stroke-width: 1;
+    shape-rendering: auto;
+}
+.area {
+  fill: steelblue;
+}
+
+</style>
+<body>
+<!-- load the d3.js library -->    
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+var data = [
+  
+  {"date":"01-05-2016 11:05:15 MONDAY","count":53},
+  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+  {"date":"06-06-2016 11:06:16 TUESDAY","count":44},
+];
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 30, right: 20, bottom: 50, left: 50},
+    width = 600 - margin.left - margin.right,
+    height = 310 - margin.top - margin.bottom;
+
+// Parse the date / time 
+var parseDate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+//var parseDate = d3.time.format("%d-%b-%y").parse;
+
+var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+
+
+// Set the ranges
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(7);
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+	
+data.forEach(function(d) {
+  d.date = parseDate(d.date);
+  d.count = +d.count;
+}
+);
+	
+	
+
+var area = d3.svg.area()
+    .x(function(d) { return x(d.date); })
+    .y0(height)
+    .y1(function(d) { return y(d.count); });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area);
+
+   // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+ // Add the text label for the X axis
+    svg.append("text")
+        .attr("transform",
+              "translate(" + (width/2) +" ," + 
+                            (height+margin.bottom) +")")
+        .style("text-anchor", "middle")
+        .style("font-size","16px")
+        .text("Date");
+
+//Add the text label for the Y axis
+
+ svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y",-40)
+        .attr("x", margin.top -(height / 2))
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .style("font-size","16px")
+        .text("Count");
+		
+		var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+
+svg.selectAll("dot")    
+        .data(data)         
+    .enter().append("circle")                               
+        .attr("r", 5)       
+        .attr("cx", function(d) { return x(d.date); })       
+        .attr("cy", function(d) { return y(d.count); })     
+        .on("mouseover", function(d) {      
+            div.transition()        
+                .duration(200)      
+                .style("opacity", .9);      
+            div .html(formatTime(d.date) + "<br/>"  + d.count)  
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY - 28) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+        });
+
+
+
+</script>
+</body>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+ 
+  div.tooltip {   
+  position: absolute;           
+  text-align: center;           
+  width: 180px;                  
+  height: 28px;                 
+  padding: 2px;             
+  font: 12px sans-serif;        
+  background: lightsteelblue;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+}
+
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+</style>
+<body>
+
+<!-- load the d3.js library -->    
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+  
+ 
+	var data = [
+  
+  {"date":"01-05-2016 11:05:15 MONDAY","count":53},
+  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+  {"date":"06-06-2016 11:06:16 TUESDAY","count":44},
+];
+var width = 960,
+    height = 500,
+    radius = Math.min(width, height) / 2;
+	
+	// Parse the date / time 
+var parseDate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+//var parseDate = d3.time.format("%d-%b-%y").parse;
+var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+
+data.forEach(function(d) {
+  d.date = parseDate(d.date);
+  d.count = +d.count;
+}
+);
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(0);
+
+var labelArc = d3.svg.arc()
+    .outerRadius(radius - 40)
+    .innerRadius(radius - 40);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d.count; });
+
+var svg = d3.select("body").append("svg")
+		.attr("class","svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+ 
+ var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+
+  var g = svg.selectAll(".arc")
+      .data(pie(data))
+    .enter().append("g")
+      .attr("class", "arc")
+	  .on("mouseover", function(d) {      
+            div.transition()        
+                .duration(200)      
+                .style("opacity", .9);      
+            div .html(formatTime(d.data.date) + "<br/>"  + d.data.count)  
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY - 28) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+        });
+	  
+
+  g.append("path")
+      .attr("d", arc)
+      .style("fill", function(d) { return color(d.data.date); });
+
+  g.append("text")
+      .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .text(function(d) { return d.data.count; });
+	  
+
+
+
+
+</script>
+</body>

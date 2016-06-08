@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.grid .tick {
+    stroke: lightgrey;
+    stroke-oparestcoloumn: 0.7;
+    shape-rendering: crispEdges;
+}
+.grid path {
+          stroke-width: 0;
+}
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+<script>
+ var data = [
+  
+  {"date":"01-05-2016 11:05:15 MONDAY","pass":40,"fail":60,"total":83},
+  {"date":"06-05-2016 11:06:16 MONDAY","pass":41,"fail":55,"total":77},
+  {"date":"13-05-2016 11:07:17 TUESDAY","pass":22,"fail":44,"total":63},
+  {"date":"23-05-2016 11:07:17 TUESDAY","pass":33,"fail":39,"total":83},
+  {"date":"25-05-2016 11:05:15 MONDAY","pass":44,"fail":44,"total":93},
+  {"date":"30-05-2016 11:06:16 MONDAY","pass":55,"fail":56,"total":73},
+  {"date":"31-05-2016 11:07:17 TUESDAY","pass":55,"fail":66,"total":63},
+  {"date":"03-06-2016 11:05:15 MONDAY","pass":66,"fail":79,"total":55},
+  {"date":"06-06-2016 11:06:16 TUESDAY","pass":44,"fail":65,"total":44},
+  {"date":"10-06-2016 11:05:15 MONDAY","pass":45,"fail":77,"total":43},
+  {"date":"15-06-2016 11:06:16 MONDAY","pass":47,"fail":88,"total":53},
+  {"date":"20-06-2016 11:07:17 TUESDAY","pass":56,"fail":99,"total":43},
+  {"date":"25-06-2016 11:06:16 TUESDAY","pass":67,"fail":77,"total":63},
+  {"date":"30-06-2016 11:05:15 MONDAY","pass":77,"fail":84,"total":63},
+
+];
+var margin = {top: 20, right: 80, bottom: 30, left: 50},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+// Parse the date / time 
+var parsedate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+//var parsedate = d3.time.format("%d-%b-%y").parse;
+
+var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var line = d3.svg.line()
+    
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d.count); });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+data.forEach(function(d) {
+  d.date = parsedate(d.date);
+  d.pass = +d.pass;
+  d.fail=+d.fail;
+  d.total=+d.total;
+}
+);
+
+
+  color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
+
+
+  var result = color.domain().map(function(name) {
+    return {
+      name: name,
+      values: data.map(function(d) {
+        return {date: d.date, count: +d[name]};
+      })
+    };
+  });
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+
+  y.domain([
+    d3.min(result, function(c) { return d3.min(c.values, function(v) { return v.count; }); }),
+    d3.max(result, function(c) { return d3.max(c.values, function(v) { return v.count; }); })
+  ]);
+
+  
+  	// function for the x grid lines
+function make_x_axis() {
+    return d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .ticks(5)
+}
+
+// function for the y grid lines
+function make_y_axis() {
+  return d3.svg.axis()
+      .scale(y)
+      .orient("left")
+      .ticks(5)
+}
+//Draw the x grid Lines
+svg.append("g")
+        .attr("class", "grid")
+        .attr("transform", "translate(0," + height + ")")
+        .call(make_x_axis()
+            .tickSize(-height, 0, 0)
+            .tickFormat("")
+        )
+
+    // Draw the y Grid lines
+    svg.append("g")            
+        .attr("class", "grid")
+        .call(make_y_axis()
+            .tickSize(-width, 0, 0)
+            .tickFormat("")
+        )
+		
+		  // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+
+  // Add the text label for the X axis
+    svg.append("text")
+        .attr("transform",
+              "translate(" + (width/2) +" ," + 
+                            (height+margin.bottom) +")")
+        .style("text-anchor", "middle")
+        .style("font-size","16px")
+        .text("Date");
+
+//Add the text label for the Y axis
+
+ svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y",-40)
+        .attr("x", margin.top -(height / 2))
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .style("font-size","16px")
+        .text("Count");
+		
+
+
+  var restcoloumn = svg.selectAll(".restcoloumn")
+      .data(result)
+    .enter().append("g")
+      .attr("class", "restcoloumn");
+
+  restcoloumn.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+      .style("stroke", function(d) { return color(d.name); });
+
+  restcoloumn.append("text")
+      .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+      .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.count) + ")"; })
+      .attr("x", 3)
+      .attr("dy", ".35em")
+      .text(function(d) { return d.name; });
+
+
+</script>
