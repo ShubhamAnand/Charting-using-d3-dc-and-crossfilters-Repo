@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+ 
+      <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.css">
+ <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+    
+  
+    
+      <script type="text/javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	  <!-- load the d3.js library -->    
+     <script src="http://d3js.org/d3.v3.min.js"></script>
+    
+  <style> /* set the CSS */
+ .modal-body .form-horizontal .col-sm-2,
+.modal-body .form-horizontal .col-sm-10 {
+    width: 100%
+}
+
+.modal-body .form-horizontal .control-label {
+    text-align: left;
+}
+.modal-body .form-horizontal .col-sm-offset-2 {
+    margin-left: 15px;
+}
+div.tooltip {   
+  position: absolute;           
+  text-align: center;           
+  width: 180px;                  
+  height: 28px;                 
+  padding: 2px;             
+  font: 12px sans-serif;        
+  background: lightsteelblue;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+}
+
+body { font: 12px Arial;}
+
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    stroke-width: 1;
+    shape-rendering: auto;
+}
+
+.area {
+  fill: steelblue;
+}
+
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+.grid .tick {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
+.grid path {
+          stroke-width: 0;
+}
+</style>
+  
+
+  <title>Charts</title>
+
+  
+    
+
+
+
+
+<script type='text/javascript'>
+
+
+
+//<![CDATA[
+$(document).ready(function() {
+    $(document).on('click', '#submit', function() {
+	
+    
+
+        var charttype = $('#sel1').val();
+        var jsonname = $('#inputJson').val();
+        if (charttype == "Line Chart") {
+            LineChart(jsonname);
+        } 
+		else if(charttype =="MultiLine Chart")
+		{
+		     MultiLineChart(jsonname);
+		}
+		else if (charttype == "Area Chart") {
+		
+		    AreaChart(jsonname);
+
+        } else if (charttype == "Bar Chart") {
+		
+		    BarChart(jsonname);
+		
+		} else if (charttype == "Pie Chart") {
+		
+		   PieChart(jsonname);
+
+        }
+	
+        function LineChart(json) {
+            var jsonnam = JSON.stringify(json);
+			
+          
+            // Parse the date / time 
+            var parseDate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+            var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+			var data = [
+						{"date":"01-05-2016 11:05:15 MONDAY","count":53},
+						  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+						  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+						  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+						  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+						  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+						  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+						  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+						  {"date":"06-06-2016 11:06:16 TUESDAY","count":44}
+						];
+						
+						
+   
+			/*d3.json(jsonnam, function(error, data) {
+                alert("i am inside");
+                plotChart(data);
+                console.log(data); //load the json data
+            });
+
+            function plotChart(data) {
+
+                console.log(data);*/
+                data.forEach(function(d) {
+                    d.date = parseDate(d.date);
+                    console.log(d.date);
+                    d.count = +d.count;
+                    console.log(d.count);
+                });
+
+                //console.log(data);
+                // Set the dimensions of the canvas / graph
+                var margin = {
+                        top: 30,
+                        right: 20,
+                        bottom: 50,
+                        left: 50
+                    },
+                    width = 600 - margin.left - margin.right,
+                    height = 310 - margin.top - margin.bottom;
+                // Set the ranges
+                var x = d3.time.scale().range([0, width]);
+                var y = d3.scale.linear().range([height, 0]);
+
+                // Define the axes
+                var xAxis = d3.svg.axis().scale(x)
+                    .orient("bottom").ticks(7);
+
+                var yAxis = d3.svg.axis().scale(y)
+                    .orient("left").ticks(5);
+
+
+                // Define the line
+                var valueline = d3.svg.line()
+                    .x(function(d) {
+                        return x(d.date);
+                    })
+                    .y(function(d) {
+                        return y(d.count);
+                    });
+
+					 
+					 //var drag = d3.behavior.drag().on("drag", dragmove);
+                // Adds the svg canvas
+                var svg = d3.select("body")
+                    .append("svg")
+					.attr("class","svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform",
+                        "translate(" + margin.left + "," + margin.top + ")");
+					
+
+                // Scale the range of the data
+                x.domain(d3.extent(data, function(d) {
+                    return d.date;
+                }));
+                y.domain([0, d3.max(data, function(d) {
+                    return d.count;
+                })]);
+
+                // Add the valueline path.
+                svg.append("path")
+                    .attr("class", "line")
+                    .attr("d", valueline(data));
+
+                // Add the X Axis
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+
+                // Add the Y Axis
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis);
+
+
+                // Add the text label for the X axis
+                svg.append("text")
+                    .attr("transform",
+                        "translate(" + (width / 2) + " ," +
+                        (height + margin.bottom) + ")")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "16px")
+                    .text("Date");
+
+                //Add the text label for the Y axis
+
+                svg.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", -40)
+                    .attr("x", margin.top - (height / 2))
+                    .attr("dy", ".71em")
+                    .style("text-anchor", "end")
+                    .style("font-size", "16px")
+                    .text("Count");
+
+                var div = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
+
+                svg.selectAll("dot")
+                    .data(data)
+                    .enter().append("circle")
+                    .attr("r", 5)
+                    .attr("cx", function(d) {
+                        return x(d.date);
+                    })
+                    .attr("cy", function(d) {
+                        return y(d.count);
+                    })
+                    .on("mouseover", function(d) {
+                        div.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                        div.html(formatTime(d.date) + "<br/>" + d.count)
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function(d) {
+                        div.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                    });
+            //}
+			$( ".svg" ).draggable();
+			
+        }
+		
+		function MultiLineChart(json) {
+            var jsonnam = JSON.stringify(json);
+			
+          
+            // Parse the date / time 
+            var parseDate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+            var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+			var data = [
+						{"date":"01-05-2016 11:05:15 MONDAY","count":53},
+						  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+						  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+						  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+						  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+						  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+						  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+						  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+						  {"date":"06-06-2016 11:06:16 TUESDAY","count":44}
+						];
+						
+				var data2 = [
+						  {"date":"08-05-2016 11:05:15 THURSDAY","count":88},
+						  {"date":"09-05-2016 11:06:16 FRIDAY","count":67},
+						  {"date":"13-05-2016 11:07:17 SATURDAY","count":68},
+						  {"date":"23-05-2016 11:07:17 SATURDAY","count":102},
+						  {"date":"25-05-2016 11:05:15 MONDAY","count":97},
+						  {"date":"30-05-2016 11:06:16 MONDAY","count":84},
+						  {"date":"31-05-2016 11:07:17 TUESDAY","count":44},
+						  {"date":"03-06-2016 11:05:15 MONDAY","count":38},
+						  {"date":"06-06-2016 11:06:16 TUESDAY","count":85}
+						];		
+   
+			/*d3.json(jsonnam, function(error, data) {
+                alert("i am inside");
+                plotChart(data);
+                console.log(data); //load the json data
+            });
+
+            function plotChart(data) {
+
+                console.log(data);*/
+				
+				 function make_x_axis() {		
+                 return d3.svg.axis()
+                  .scale(x)
+                   .orient("bottom")
+                    .ticks(5)
+                          }
+
+                    function make_y_axis() {		
+                          return d3.svg.axis()
+                               .scale(y)
+                                  .orient("left")
+                                   .ticks(5)
+                                            }
+				
+                data.forEach(function(d) {
+                    d.date = parseDate(d.date);
+                    console.log(d.date);
+                    d.count = +d.count;
+                    console.log(d.count);
+                });
+
+                //console.log(data);
+                // Set the dimensions of the canvas / graph
+                var margin = {
+                        top: 30,
+                        right: 20,
+                        bottom: 50,
+                        left: 50
+                    },
+                    width = 600 - margin.left - margin.right,
+                    height = 310 - margin.top - margin.bottom;
+                // Set the ranges
+                var x = d3.time.scale().range([0, width]);
+                var y = d3.scale.linear().range([height, 0]);
+
+                // Define the axes
+                var xAxis = d3.svg.axis().scale(x)
+                    .orient("bottom").ticks(7);
+
+                var yAxis = d3.svg.axis().scale(y)
+                    .orient("left").ticks(5);
+
+
+                // Define the line
+                var valueline = d3.svg.line()
+				    //.interpolate("step-before")
+                    .x(function(d) {
+                        return x(d.date);
+                    })
+                    .y(function(d) {
+                        return y(d.count);
+                    });
+
+					//dEFINE SECOND Line
+					var valueline2 = d3.svg.line()
+                   .x(function(d) { return x(d.date); })
+                    .y(function(d) { return y(d.count); })
+
+					 //var drag = d3.behavior.drag().on("drag", dragmove);
+                // Adds the svg canvas
+                var svg = d3.select("body")
+                    .append("svg")
+					.attr("class","svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform",
+                        "translate(" + margin.left + "," + margin.top + ")");
+					
+
+                // Scale the range of the data
+                x.domain(d3.extent(data, function(d) {
+                    return d.date;
+                }));
+                y.domain([0, d3.max(data, function(d) {
+                    return d.count;
+                })]);
+
+                // Add the valueline path.
+				
+				
+                svg.append("path")
+                    .attr("class", "line")
+                    .attr("d", valueline(data));
+					
+					
+					  svg.append("path")
+                       .attr("class", "line")					  // Add the valueline2 path.
+                       .attr("d", valueline2(data2));
+			
+					
+					
+
+                // Add the X Axis
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+
+                // Add the Y Axis
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis);
+                //Add the grids
+				
+				  svg.append("g")			
+                 .attr("class", "grid")
+                   .attr("transform", "translate(0," + height + ")")
+                    .call(make_x_axis()
+                        .tickSize(-height, 0, 0)
+                        .tickFormat("")
+                         )
+
+                     svg.append("g")			
+                     .attr("class", "grid")
+                      .call(make_y_axis()
+                      .tickSize(-width, 0, 0)
+                        .tickFormat("")
+                            )
+
+                // Add the text label for the X axis
+                svg.append("text")
+                    .attr("transform",
+                        "translate(" + (width / 2) + " ," +
+                        (height + margin.bottom) + ")")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "16px")
+                    .text("Date");
+
+                //Add the text label for the Y axis
+
+                svg.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", -40)
+                    .attr("x", margin.top - (height / 2))
+                    .attr("dy", ".71em")
+                    .style("text-anchor", "end")
+                    .style("font-size", "16px")
+                    .text("Count");
+					
+					   svg.append("text")
+        .attr("x", (width / 2))				
+        .attr("y", 0 - (margin.top / 2))
+        .attr("text-anchor", "middle")	
+        .style("font-size", "16px") 
+        .style("text-decoration", "underline") 	
+        .text("TestData vs Date Graph");
+
+                var div = d3.select("body").append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
+
+                svg.selectAll("dot")
+                    .data(data)
+                    .enter().append("circle")
+                    .attr("r", 5)
+                    .attr("cx", function(d) {
+                        return x(d.date);
+                    })
+                    .attr("cy", function(d) {
+                        return y(d.count);
+                    })
+                    .on("mouseover", function(d) {
+                        div.transition()
+                            .duration(200)
+                            .style("opacity", .9);
+                        div.html(formatTime(d.date) + "<br/>" + d.count)
+                            .style("left", (d3.event.pageX) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function(d) {
+                        div.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                    });
+            //}
+			$( ".svg" ).draggable();
+			
+        }
+		
+		 function AreaChart(json) {
+		 
+		 var data = [
+  
+  {"date":"01-05-2016 11:05:15 MONDAY","count":53},
+  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+  {"date":"06-06-2016 11:06:16 TUESDAY","count":44},
+];
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 30, right: 20, bottom: 50, left: 50},
+    width = 600 - margin.left - margin.right,
+    height = 310 - margin.top - margin.bottom;
+
+// Parse the date / time 
+var parseDate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+//var parseDate = d3.time.format("%d-%b-%y").parse;
+
+var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+
+
+// Set the ranges
+var x = d3.time.scale().range([0, width]);
+var y = d3.scale.linear().range([height, 0]);
+
+// Define the axes
+var xAxis = d3.svg.axis().scale(x)
+    .orient("bottom").ticks(7);
+
+var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+	
+data.forEach(function(d) {
+  d.date = parseDate(d.date);
+  d.count = +d.count;
+}
+);
+	
+	
+
+var area = d3.svg.area()
+    .x(function(d) { return x(d.date); })
+    .y0(height)
+    .y1(function(d) { return y(d.count); });
+
+var svg = d3.select("body").append("svg")
+		.attr("class","svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("d", area);
+
+   // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+ // Add the text label for the X axis
+    svg.append("text")
+        .attr("transform",
+              "translate(" + (width/2) +" ," + 
+                            (height+margin.bottom) +")")
+        .style("text-anchor", "middle")
+        .style("font-size","16px")
+        .text("Date");
+
+//Add the text label for the Y axis
+
+ svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y",-40)
+        .attr("x", margin.top -(height / 2))
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .style("font-size","16px")
+        .text("Count");
+		
+		var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+
+svg.selectAll("dot")    
+        .data(data)         
+    .enter().append("circle")                               
+        .attr("r", 5)       
+        .attr("cx", function(d) { return x(d.date); })       
+        .attr("cy", function(d) { return y(d.count); })     
+        .on("mouseover", function(d) {      
+            div.transition()        
+                .duration(200)      
+                .style("opacity", .9);      
+            div .html(formatTime(d.date) + "<br/>"  + d.count)  
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY - 28) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+        });
+
+$( ".svg" ).draggable();
+		 
+		 }
+		 
+		 function  BarChart(json){
+		 
+		 	var data = [
+  
+  {"date":"01-05-2016 11:05:15 MONDAY","count":53},
+  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+  {"date":"06-06-2016 11:06:16 TUESDAY","count":44},
+];
+
+
+// Set the dimensions of the canvas / graph
+var margin = {top: 30, right: 20, bottom: 50, left: 50},
+    width = 600 - margin.left - margin.right,
+    height = 310 - margin.top - margin.bottom;
+
+// Parse the date / time 
+var parsedate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+//var parsedate = d3.time.format("%d-%b-%y").parse;
+
+var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+
+var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
+
+var y = d3.scale.linear().range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat(d3.time.format("%d-%a"));
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+    .ticks(10);
+
+var svg = d3.select("body").append("svg")
+		.attr("class","svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", 
+          "translate(" + margin.left + "," + margin.top + ")");
+
+data.forEach(function(d) {
+  d.date = parsedate(d.date);
+  d.count = +d.count;
+}
+);
+	
+  x.domain(data.map(function(d) { return d.date; }));
+  y.domain([0, d3.max(data, function(d) { return d.count; })]);
+  
+   // Add the X Axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add the Y Axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis);
+
+
+  // Add the text label for the X axis
+    svg.append("text")
+        .attr("transform",
+              "translate(" + (width/2) +" ," + 
+                            (height+margin.bottom) +")")
+        .style("text-anchor", "middle")
+        .style("font-size","16px")
+        .text("Date");
+
+//Add the text label for the Y axis
+
+ svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y",-40)
+        .attr("x", margin.top -(height / 2))
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .style("font-size","16px")
+        .text("Count");
+  
+ var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0); 
+  
+  svg.selectAll("bar")
+      .data(data)
+    .enter().append("rect")
+      .style("fill", "steelblue")
+      .attr("x", function(d) { return x(d.date); })
+      .attr("width", x.rangeBand())
+      .attr("y", function(d) { return y(d.count); })
+      .attr("height", function(d) { return height - y(d.count); })
+	  .on("mouseover", function(d) {      
+            div.transition()        
+                .duration(200)      
+                .style("opacity", .9);
+            div .html(formatTime(d.date) + "<br/>"  + d.count)  
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY - 28) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+        });
+
+
+		 
+		 $( ".svg" ).draggable();
+		 }
+		 
+		 function PieChart(json){
+		 
+	var data = [
+  
+  {"date":"01-05-2016 11:05:15 MONDAY","count":53},
+  {"date":"06-05-2016 11:06:16 MONDAY","count":67},
+  {"date":"13-05-2016 11:07:17 TUESDAY","count":60},
+  {"date":"23-05-2016 11:07:17 TUESDAY","count":50},
+  {"date":"25-05-2016 11:05:15 MONDAY","count":19},
+  {"date":"30-05-2016 11:06:16 MONDAY","count":16},
+  {"date":"31-05-2016 11:07:17 TUESDAY","count":23},
+  {"date":"03-06-2016 11:05:15 MONDAY","count":34},
+  {"date":"06-06-2016 11:06:16 TUESDAY","count":44},
+];
+var width = 960,
+    height = 500,
+    radius = Math.min(width, height) / 2;
+	
+	// Parse the date / time 
+var parseDate = d3.time.format("%d-%m-%Y %H:%M:%S %A").parse;
+//var parseDate = d3.time.format("%d-%b-%y").parse;
+var formatTime = d3.time.format("%d-%m-%Y %H:%M:%S %A");
+
+data.forEach(function(d) {
+  d.date = parseDate(d.date);
+  d.count = +d.count;
+}
+);
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(0);
+
+var labelArc = d3.svg.arc()
+    .outerRadius(radius - 40)
+    .innerRadius(radius - 40);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d.count; });
+
+var svg = d3.select("body").append("svg")
+		.attr("class","svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+ 
+ var div = d3.select("body").append("div")   
+    .attr("class", "tooltip")               
+    .style("opacity", 0);
+
+  var g = svg.selectAll(".arc")
+      .data(pie(data))
+    .enter().append("g")
+      .attr("class", "arc")
+	  .on("mouseover", function(d) {      
+            div.transition()        
+                .duration(200)      
+                .style("opacity", .9);      
+            div .html(formatTime(d.data.date) + "<br/>"  + d.data.count)  
+                .style("left", (d3.event.pageX) + "px")     
+                .style("top", (d3.event.pageY - 28) + "px");    
+            })                  
+        .on("mouseout", function(d) {       
+            div.transition()        
+                .duration(500)      
+                .style("opacity", 0);   
+        });
+	  
+
+  g.append("path")
+      .attr("d", arc)
+      .style("fill", function(d) { return color(d.data.date); });
+
+  g.append("text")
+      .attr("transform", function(d) { return "translate(" + labelArc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .text(function(d) { return d.data.count; });
+	  
+
+
+
+
+		 
+		 $( ".svg" ).draggable();
+		 }
+    });
+
+	
+});
+//]]> 
+
+</script>
+
+  
+</head>
+
+<body>
+  <!-- Button trigger modal -->
+<button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModalHorizontal">
+    Add Chart
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="myModalHorizontal" tabindex="-1" role="dialog" 
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" 
+                   data-dismiss="modal">
+                       <span aria-hidden="true">&times;</span>
+                       <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    Add Charts
+                </h4>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="modal-body">
+                
+                <form class="form-horizontal" role="form">
+                  <div class="form-group">
+                    <div class="col-sm-10">
+					<label for="sel1">Select Chart:</label>
+				<select class="form-control" id="sel1">
+					<option>Line Chart</option>
+					<option>MultiLine Chart</option>
+					<option>Area Chart</option>
+					<option>Bar Chart</option>
+					<option>Pie Chart</option>
+					
+				</select>
+                      
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label"
+                          for="inputPassword3" >Enter Source File Name</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control"
+                            id="inputJson" placeholder="Json File Name"/>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="submit" class="btn btn-primary" id="submit" data-dismiss="modal">Submit</button>
+                    </div>
+                  </div>
+                </form>
+                
+                
+                
+                
+                
+                
+            </div>
+            
+            <!-- Modal Footer -->
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+  
+</body>
+
+</html>
+

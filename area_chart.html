@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
+    
+  
+      <script type="text/javascript" src="http://tvinci.github.io/webs/js/dc.js"></script>
+    
+ 
+      <script type="text/javascript" src="http://tvinci.github.io/webs/js/crossfilter.js"></script>
+    
+  
+    
+      <script type="text/javascript" src="http://tvinci.github.io/webs/js/d3.js"></script>
+    
+  
+    
+      <link rel="stylesheet" type="text/css" href="http://tvinci.github.io/webs/css/dc.css">
+	  
+	  <script type="text/javascript" src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    
+  
+
+  <style type="text/css">
+  
+  .d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Northward tooltips */
+.d3-tip.n:after {
+  content: "\25BC";
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+  text-align: center;
+}
+
+/* Eastward tooltips */
+.d3-tip.e:after {
+  content: "\25C0";
+  margin: -4px 0 0 0;
+  top: 50%;
+  left: -8px;
+}
+
+/* Southward tooltips */
+.d3-tip.s:after {
+  content: "\25B2";
+  margin: 0 0 1px 0;
+  top: -8px;
+  left: 0;
+  text-align: center;
+}
+
+/* Westward tooltips */
+.d3-tip.w:after {
+  content: "\25B6";
+  margin: -4px 0 0 -1px;
+  top: 50%;
+  left: 100%;
+}
+
+  </style>
+
+  <title> by tvinci</title>
+
+<script type='text/javascript'>//<![CDATA[
+window.onload=function(){
+
+
+	var hitslineChart  = dc.lineChart("#chart-line-hitsperday");
+	//var hitslineChart  = dc.pieChart("#chart-line-hitsperday");
+
+	//var timeChart  = dc.timeChart("#chart-line-hitsperday");
+	var data = [
+			{date: "12/27/2012", pass: 2, total: 5, fail: 3},
+			{date: "12/28/2012", pass: 6, total: 10, fail: 4},
+			{date: "12/29/2012", pass: 10, total: 15, fail: 5},
+			{date: "12/30/2012", pass: 20, total: 30, fail: 10},
+			{date: "12/31/2012", pass: 30, total: 60, fail: 30},
+			{date: "01/01/2013", pass: 40, total: 60, fail: 20},
+			{date: "01/02/2013", pass: 90, total: 100, fail: 5},
+			{date: "01/03/2013", pass: 20, total: 50, fail: 30},
+			{date: "01/04/2013", pass: 65, total: 80, fail: 15},
+			{date: "01/05/2013", pass: 40, total: 60, fail: 20},
+			{date: "01/06/2013", pass: 60, total: 70, fail: 10},
+			{date: "01/07/2013", pass: 80, total: 100, fail: 20}
+			];
+			
+			/* Initialize tooltip */
+tip = d3.tip().html(function(d) { return d; });
+
+	var ndx = crossfilter(data);
+	var parseDate = d3.time.format("%m/%d/%Y").parse;
+	
+	data.forEach(function(d) 
+	{
+	d.date = parseDate(d.date);
+	d.total= d.pass+d.total+d.fail;
+        d.Year=d.date.getFullYear();
+		});
+		
+		var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .html(function(d) { return '<span>' + d.total + '</span>' + ' entries' })
+      .offset([-12, 0])
+	  
+	  hitslineChart.
+	  on('mouseover', tip.show)
+      .on('mouseout', tip.hide)
+	  
+		console.log(data);
+		var dateDim = ndx.dimension(function(d) {return d.date;});
+		var hits = dateDim.group().reduceSum(function(d) {return d.total;});
+		var yearDim  = ndx.dimension(function(d) {return +d.Year;});
+      var year_total = yearDim.group().reduceSum(function(d) {return d.total;});
+	  
+	  console.log(year_total);
+	   var total=dateDim.group().reduceSum(function(d) {return d.total;});
+var fail=dateDim.group().reduceSum(function(d) {return d.fail;});
+var pass=dateDim.group().reduceSum(function(d) {return d.pass;});
+	
+	
+	
+
+	/*
+	
+	line chart
+	data.forEach(function(d) {
+		d.date = Date.parse(d.date);
+		d.total= d.pass+d.total+d.fail;
+	});
+	
+
+	var dateDim = ndx.dimension(function(d) {return d.date;});
+	var hits = dateDim.group().reduceSum(function(d) {return d.total;});
+	
+	*/
+	
+	var minDate = dateDim.bottom(1)[0].date;
+	var maxDate = dateDim.top(1)[0].date;
+	
+	
+    
+	
+	hitslineChart
+   .width(800).height(400)
+   .dimension(dateDim)
+   .group(fail,"fail")
+   .stack(pass,"pass")
+   .stack(total,"total")   
+   .renderArea(true)
+   .x(d3.time.scale().domain([minDate,maxDate]))
+   .brushOn(false)
+   .legend(dc.legend().x(50).y(10).itemHeight(20).gap(5))
+   .yAxisLabel("Tests per day")
+   .xAxisLabel("Date");
+   /*
+	hitslineChart
+		.width(500).height(200)
+		.dimension(dateDim)
+		.group(hits)
+		.x(d3.time.scale().domain([minDate,maxDate]))
+		.yAxisLabel("Tests per day")
+		.xAxisLabel("Date");
+		*/
+
+	dc.renderAll();
+	 
+}
+//]]> 
+
+</script>
+
+  
+</head>
+
+<body>
+  <div id="chart-line-hitsperday"></div>
+  
+  <div id="chart-ring-year"></div>
+  
+</body>
+
+</html>
+

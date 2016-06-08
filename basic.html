@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+div.tooltip {   
+  position: absolute;           
+  text-align: center;           
+  width: 180px;                  
+  height: 28px;                 
+  padding: 2px;             
+  font: 12px sans-serif;        
+  background: lightsteelblue;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+}
+
+body { font: 12px Arial;}
+
+path { 
+    stroke: steelblue;
+    stroke-width: 2;
+    fill: none;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    stroke-width: 1;
+    shape-rendering: auto;
+}
+
+</style>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<body>
+
+<!-- load the d3.js library -->    
+
+
+
+
+<ul>
+<li>Hello </li>
+<li>Welcome</li>
+<li>Why </li>
+<li>See</li>
+<li>You</li>
+<li>Now</li>
+</ul>
+
+<script>
+/*
+d3.selectAll("p").style("color", function(d, i) {
+  return i % 2 ? "#fff" : "#eee";
+});
+*/
+
+d3.selectAll('li').style("color",function() {
+  return "hsl(" + Math.random() * 360 + ",100%,40%)";
+});
+
+d3.selectAll("li:nth-child(odd)")
+    .data([4, 8, 15, 16, 23, 42])
+    .style("font-size", function(d) { return d + "px"; })
+	 .html("this is even no")
+	 .attr("class",big);
+	 
+	
+	
+	d3.select("body").selectAll("li")
+    .data([4, 8, 15, 16, 23, 42])
+  .enter().append("li")
+    .text(function(d) { return "I’m number " + d + "!"; });
+</script>
+
+</body>	

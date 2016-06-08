@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
+    
+  
+      <script type="text/javascript" src="http://tvinci.github.io/webs/js/dc.js"></script>
+    
+ 
+      <script type="text/javascript" src="http://tvinci.github.io/webs/js/crossfilter.js"></script>
+    
+  
+    
+      <script type="text/javascript" src="http://tvinci.github.io/webs/js/d3.js"></script>
+    
+  
+    
+      <link rel="stylesheet" type="text/css" href="http://tvinci.github.io/webs/css/dc.css">
+    
+  
+
+  <style type="text/css">
+    
+  </style>
+
+  <title> by tvinci</title>
+
+<script type='text/javascript'>//<![CDATA[
+window.onload=function(){
+	var hitslineChart  = dc.lineChart("#chart-line-hitsperday");
+
+	var data = [
+			{date: "12/27/2012", http_404: 2, http_200: 190, http_302: 100},
+			{date: "12/28/2012", http_404: 2, http_200: 10, http_302: 100},
+			{date: "12/29/2012", http_404: 1, http_200: 300, http_302: 200},
+			{date: "12/30/2012", http_404: 2, http_200: 90, http_302: 0},
+			{date: "12/31/2012", http_404: 2, http_200: 90, http_302: 0},
+			{date: "01/01/2013", http_404: 2, http_200: 90, http_302: 0},
+			{date: "01/02/2013", http_404: 1, http_200: 10, http_302: 1},
+			{date: "01/03/2013", http_404: 2, http_200: 90, http_302: 0},
+			{date: "01/04/2013", http_404: 2, http_200: 90, http_302: 0},
+			{date: "01/05/2013", http_404: 2, http_200: 90, http_302: 0},
+			{date: "01/06/2013", http_404: 2, http_200: 200, http_302: 1},
+			{date: "01/07/2013", http_404: 1, http_200: 200, http_302: 100}
+			];
+	var ndx = crossfilter(data);
+	var parseDate = d3.time.format("%m/%d/%Y").parse;
+	
+	data.forEach(function(d) 
+	{
+	d.date = parseDate(d.date);
+	d.total= d.http_404+d.http_200+d.http_302;
+        d.Year=d.date.getFullYear();
+		});
+		
+		console.log(data);
+		var dateDim = ndx.dimension(function(d) {return d.date;});
+		var hits = dateDim.group().reduceSum(function(d) {return d.total;});
+		var yearDim  = ndx.dimension(function(d) {return +d.Year;});
+      var year_total = yearDim.group().reduceSum(function(d) {return d.total;});
+	   var status_200=dateDim.group().reduceSum(function(d) {return d.http_200;});
+var status_302=dateDim.group().reduceSum(function(d) {return d.http_302;});
+var status_404=dateDim.group().reduceSum(function(d) {return d.http_404;});
+	
+	/*
+	
+	line chart
+	data.forEach(function(d) {
+		d.date = Date.parse(d.date);
+		d.total= d.http_404+d.http_200+d.http_302;
+	});
+	
+
+	var dateDim = ndx.dimension(function(d) {return d.date;});
+	var hits = dateDim.group().reduceSum(function(d) {return d.total;});
+	
+	*/
+	
+	var minDate = dateDim.bottom(1)[0].date;
+	var maxDate = dateDim.top(1)[0].date;
+	
+	
+    
+	
+	hitslineChart
+   .width(500).height(200)
+   .dimension(dateDim)
+   .group(status_200,"200")
+   .stack(status_302,"302")
+   .stack(status_404,"404")   
+   .renderArea(true)
+   .x(d3.time.scale().domain([minDate,maxDate]))
+   .brushOn(false)
+   .legend(dc.legend().x(50).y(10).itemHeight(13).gap(5))
+   .yAxisLabel("Tests per day");
+   /*
+	hitslineChart
+		.width(500).height(200)
+		.dimension(dateDim)
+		.group(hits)
+		.x(d3.time.scale().domain([minDate,maxDate]))
+		.yAxisLabel("Tests per day")
+		.xAxisLabel("Date");
+		*/
+
+	dc.renderAll();
+	 
+}
+//]]> 
+
+</script>
+
+  
+</head>
+
+<body>
+  <div id="chart-line-hitsperday"></div>
+  
+  <div id="chart-ring-year"></div>
+  
+</body>
+
+</html>
+
